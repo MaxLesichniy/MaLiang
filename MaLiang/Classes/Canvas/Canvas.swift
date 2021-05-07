@@ -88,7 +88,13 @@ open class Canvas: MetalView {
     /// current brush used to draw
     /// only registered brushed can be set to current
     /// get a brush from registeredBrushes and call it's use() method to make it current
-    open internal(set) var currentBrush: Brush!
+    open internal(set) var currentBrush: Brush! {
+        didSet {
+            guard let currentBrush = currentBrush,
+                  currentBrush.name != oldValue?.name else { return }
+            actionObservers.canvas(self, didChangedCurrentBrush: currentBrush)
+        }
+    }
     
     /// All registered brushes
     open private(set) var registeredBrushes: [Brush] = []
@@ -115,6 +121,16 @@ open class Canvas: MetalView {
             return exists
         }
         let texture = try super.makeTexture(with: data, id: id)
+        textures.append(texture)
+        return texture
+    }
+    
+    override open func makeTexture(with texture: MTLTexture, id: String? = nil) throws -> MLTexture {
+        // if id is set, make sure this id is not already exists
+        if let id = id, let exists = findTexture(by: id) {
+            return exists
+        }
+        let texture = try super.makeTexture(with: texture, id: id)
         textures.append(texture)
         return texture
     }
@@ -210,6 +226,17 @@ open class Canvas: MetalView {
     open func resetData(redraw: Bool = true) {
         let oldData = data!
         let newData = CanvasData()
+        // link registered observers to new data
+        newData.observers = data.observers
+        data = newData
+        if redraw {
+            self.redraw()
+        }
+        data.observers.data(oldData, didResetTo: newData)
+    }
+    
+    open func replaceData(with newData: CanvasData, redraw: Bool = true) {
+        let oldData = data!
         // link registered observers to new data
         newData.observers = data.observers
         data = newData
@@ -346,4 +373,12 @@ open class Canvas: MetalView {
         }
         return Pan(touch: t, on: self)
     }
+}
+
+extension Canvas {
+    
+    func didChangeBrushParameters(_ brush: Brush) {
+        actionObservers.canvas(self, didChangedBrushParameters: brush)
+    }
+    
 }

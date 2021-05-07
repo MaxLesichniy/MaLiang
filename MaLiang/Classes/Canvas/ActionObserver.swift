@@ -41,7 +41,8 @@ public protocol ActionObserver: AnyObject {
     func canvas(_ canvas: Canvas, didFinishLineAt point: CGPoint, force: CGFloat)
     
     func canvas(_ canvas: Canvas, didRedrawOn target: RenderTarget)
-    
+    func canvas(_ canvas: Canvas, didChangedBrushParameters brush: Brush)
+    func canvas(_ canvas: Canvas, didChangedCurrentBrush brush: Brush)
     // Only called on ScrollableCanvas
     
     func canvas(_ canvas: ScrollableCanvas, didZoomTo zoomLevel: CGFloat)
@@ -59,7 +60,8 @@ public extension ActionObserver {
     func canvas(_ canvas: Canvas, didFinishLineAt point: CGPoint, force: CGFloat) {}
     
     func canvas(_ canvas: Canvas, didRedrawOn target: RenderTarget) {}
-    
+    func canvas(_ canvas: Canvas, didChangedBrushParameters brush: Brush) {}
+    func canvas(_ canvas: Canvas, didChangedCurrentBrush brush: Brush) {}
     // Only called on ScrollableCanvas
     
     func canvas(_ canvas: ScrollableCanvas, didZoomTo zoomLevel: CGFloat) {}
@@ -101,6 +103,14 @@ extension ActionObserverPool: ActionObserver {
 
     func canvas(_ canvas: Canvas, didRedrawOn target: RenderTarget) {
         aliveObservers.forEach { $0.canvas(canvas, didRedrawOn: target) }
+    }
+    
+    func canvas(_ canvas: Canvas, didChangedBrushParameters brush: Brush) {
+        aliveObservers.forEach { $0.canvas(canvas, didChangedBrushParameters: brush) }
+    }
+    
+    func canvas(_ canvas: Canvas, didChangedCurrentBrush brush: Brush) {
+        aliveObservers.forEach { $0.canvas(canvas, didChangedCurrentBrush: brush) }
     }
     
     // Only called on ScrollableCanvas

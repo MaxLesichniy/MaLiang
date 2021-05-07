@@ -54,7 +54,11 @@ open class Brush {
     }
     
     // width of stroke line in points
-    open var pointSize: CGFloat = 4
+    open var pointSize: CGFloat = 4 {
+        didSet {
+            target?.didChangeBrushParameters(self)
+        }
+    }
 
     // this property defines the minimum distance (measureed in points) of nearest two textures
     // defaults to 1, this means erery texture calculated will be rendered, dictance calculation will be skiped
@@ -62,7 +66,11 @@ open class Brush {
     
     // sensitive of pointsize changed from force, if sets to 0, stroke size will not be affected by force
     // sets to 1 to make an everage affect
-    open var forceSensitive: CGFloat = 0
+    open var forceSensitive: CGFloat = 0 {
+        didSet {
+            target?.didChangeBrushParameters(self)
+        }
+    }
     
     // indicate if the stroke size in visual will be scaled along with the Canvas
     // defaults to false, the stroke size in visual will stay with the original value
@@ -70,6 +78,8 @@ open class Brush {
     
     // force used when tap the canvas, defaults to 0.1
     open var forceOnTap: CGFloat = 1
+    
+    open var fixOverlaping: Bool = true
     
     /// color of stroke
     open var color: UIColor = .black {
@@ -97,6 +107,7 @@ open class Brush {
     // called when color or opacity changed
     private func updateRenderingColor() {
         renderingColor = color.toMLColor(opacity: opacity)
+        target?.didChangeBrushParameters(self)
     }
     
     // designed initializer, will be called by target when reigster called

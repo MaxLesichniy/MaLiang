@@ -71,6 +71,21 @@ extension CGSize {
     func encodeToInts() -> [Int] {
         return [Int(width * 10), Int(height * 10)]
     }
+    
+    func fillingRect(in targetRect: CGRect) -> CGRect {
+        let rect: CGRect
+        let aspect = width / height
+        if targetRect.size.width / aspect > targetRect.size.height {
+            let height = targetRect.size.width / aspect
+            rect = CGRect(x: 0, y: (targetRect.size.height - height) / 2,
+                          width: targetRect.size.width, height: height)
+        } else {
+            let width = targetRect.size.height * aspect
+            rect = CGRect(x: (targetRect.size.width - width) / 2, y: 0,
+                          width: width, height: targetRect.size.height)
+        }
+        return rect
+    }
 }
 
 extension CGRect {
@@ -78,6 +93,37 @@ extension CGRect {
         return CGPoint(x: origin.x + width / 2, y: origin.y + height / 2)
     }
 }
+
+extension UIImage {
+    func resized(in targetRect: CGRect) -> UIImage {
+        var newImage = self
+        if #available(iOS 10.0, *) {
+            let renderer = UIGraphicsImageRenderer(bounds: targetRect)
+            newImage = renderer.image { context in
+                guard let cgImage = cgImage else { return }
+                let rect = size.fillingRect(in: targetRect)
+                context.cgContext.draw(cgImage, in: rect)
+            }
+        } else if let imageRef = cgImage {
+            let rect = size.fillingRect(in: targetRect)
+            let context =  CGContext(data: nil,
+                                     width: Int(targetRect.size.width),
+                                     height: Int(targetRect.size.height),
+                                     bitsPerComponent: imageRef.bitsPerComponent,
+                                     bytesPerRow: 0,
+                                     space: imageRef.colorSpace ?? CGColorSpaceCreateDeviceRGB(),
+                                     bitmapInfo: imageRef.bitmapInfo.rawValue)
+            context?.interpolationQuality = .high
+            context?.draw(imageRef, in: rect)
+            if let newImageRef = context?.makeImage() {
+                newImage = UIImage(cgImage: newImageRef)
+            }
+        }
+
+         return newImage
+    }
+}
+
 
 /// called when saving or reading finished
 public typealias ResultHandler = (Result<Void, Error>) -> ()

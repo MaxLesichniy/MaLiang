@@ -14,7 +14,7 @@ open class MLTexture: Hashable {
     
     open private(set) var id: String
     
-    open private(set) var texture: MTLTexture
+    open var texture: MTLTexture
     
     init(id: String, texture: MTLTexture) {
         self.id = id

@@ -16,6 +16,13 @@ open class MetalView: MTKView {
     
     // MARK: - Brush Textures
     
+    func makeTexture(with texture: MTLTexture, id: String? = nil) throws -> MLTexture {
+        guard metalAvaliable else {
+            throw MLError.simulatorUnsupported
+        }
+        return MLTexture(id: id ?? UUID().uuidString, texture: texture)
+    }
+    
     func makeTexture(with data: Data, id: String? = nil) throws -> MLTexture {
         guard metalAvaliable else {
             throw MLError.simulatorUnsupported
@@ -54,7 +61,7 @@ open class MetalView: MTKView {
 
     // MARK: - Setup
     
-    override init(frame frameRect: CGRect, device: MTLDevice?) {
+    public override init(frame frameRect: CGRect, device: MTLDevice?) {
         super.init(frame: frameRect, device: device)
         setup()
     }
@@ -103,7 +110,7 @@ open class MetalView: MTKView {
     }
 
     // render target for rendering contents to screen
-    internal var screenTarget: RenderTarget?
+    public var screenTarget: RenderTarget?
     
     private var commandQueue: MTLCommandQueue?
 
